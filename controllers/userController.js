@@ -4,6 +4,8 @@ const permissions = User.rawAttributes.permission.values;
 const {body, validationResult} = require('express-validator/check');
 const {sanitizeBody} = require('express-validator/filter');
 
+const _ = require('lodash');
+
 //middleware
 const checkIdInput = function (req, res, next) {
     if (isNaN(req.params.id)) {
@@ -62,7 +64,24 @@ exports.user_delete_post = function(req, res) {
 };
 
 exports.user_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: User update GET');
+
+    console.log(_.isNumber(req.params.id));
+
+    const _id = _.toNumber(req.params.id);
+
+    if(_.isNumber(_id)) {
+
+        User
+            .findById(_id)
+            .then(user => {
+                console.log(user);
+                res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user})
+            });
+
+
+    } else {
+        res.render('error', { message: 'There is no user.', error: { status: '', stack: ''}})
+    }
 };
 
 exports.user_update_post = function(req, res) {
