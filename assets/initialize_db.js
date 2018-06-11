@@ -18,7 +18,6 @@ const DEFAULT_USERS = [{
     email: 'user@sps.org'
 }];
 
-
 const sqlite = require('sqlite3');
 const models = require('../models');
 
@@ -28,47 +27,53 @@ const User = require('../models').User;
 models
     .sequelize
     .sync()
-    .then(function() {
+    .then(() => {
         console.log('connected to db');
 
         let defaultUsersBulkCreate = [];
 
-        DEFAULT_USERS.forEach(defaultUser => {
-
-            defaultUsersBulkCreate.push({
-                username: defaultUser.username,
-                password: defaultUser.password,
-                permission: defaultUser.permission,
-                editable: defaultUser.editable,
-                email: defaultUser.email
-            })
-/*
-            User
-                .findOrCreate({where: {username: defaultUser.username}, defaults: {
-                        password: defaultUser.password,
-                        permission: defaultUser.permission,
-                        editable: defaultUser.editable,
-                        email: defaultUser.email
-                }})
-                .spread((createdUser, created) => {
-                    if (createdUser) {
-                        console.log(createdUser);
-                    }
-                })
-                .catch(err => {
-                    console.log(err.message);
-                })
-                */
-        });
-
         User
-            .bulkCreate(defaultUsersBulkCreate)
-            .then(() => {
-                return User.findAll();
+            .findAll({
+                attributes: ['username']
             })
-            .then((users) => {
-                console.log(users);
+            .then(alreadyInUsers => {
+
+                let alreadyIn = alreadyInUsers.map(user => user.username);
+
+                DEFAULT_USERS.forEach(user => {
+
+                    if (!alreadyIn.includes(user.username)) {
+
+                        defaultUsersBulkCreate.push({
+                            username: user.username,
+                            password: user.password,
+                            permission: user.permission,
+                            editable: user.editable,
+                            email: user.email
+                        })
+                    }
+                });
+
+                return defaultUsersBulkCreate
             })
+            .then(defaultUsersBulkCreate => {
+
+                if(defaultUsersBulkCreate) {
+                    User
+                        .bulkCreate(defaultUsersBulkCreate)
+                        .then(() => {
+                            return User.findAll();
+                        })
+                        .then((users) => {
+                            console.log(users);
+                        })
+                }
+
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+        
     })
     .catch(function(err) {
         console.log(err)
