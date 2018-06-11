@@ -1,4 +1,5 @@
 const User = require('../models').User;
+const permissions = User.rawAttributes.permission.values;
 
 const {body, validationResult} = require('express-validator/check');
 const {sanitizeBody} = require('express-validator/filter');
@@ -29,14 +30,10 @@ const checkIdExist = function (req, res, next) {
 };
 
 exports.user_list = function(req, res) {
-    // res.send('NOT IMPLEMENTED: User list');
 
     User
         .findAll()
         .then(users => {
-            // res.send(res.users);
-            // res.status(200).json(users);
-
             res.render('users', { title: 'Users', user_list: users});
         })
         .catch(err => {
@@ -49,9 +46,7 @@ exports.user_detail = function(req, res) {
 };
 
 exports.user_create_get = function(req, res) {
-    // res.send('NOT IMPLEMENTED: User create GET');
-
-    res.render('user_form', { title: 'Create User'});
+    res.render('user_form', { title: 'Create User', permission_list: permissions});
 };
 
 exports.user_create_post = function(req, res) {

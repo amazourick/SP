@@ -30,51 +30,54 @@ models
     .then(() => {
         console.log('connected to db');
 
-        let defaultUsersBulkCreate = [];
+        createDefaultUsersIfNotExist();
 
-        User
-            .findAll({
-                attributes: ['username']
-            })
-            .then(alreadyInUsers => {
-
-                let alreadyIn = alreadyInUsers.map(user => user.username);
-
-                DEFAULT_USERS.forEach(user => {
-
-                    if (!alreadyIn.includes(user.username)) {
-
-                        defaultUsersBulkCreate.push({
-                            username: user.username,
-                            password: user.password,
-                            permission: user.permission,
-                            editable: user.editable,
-                            email: user.email
-                        })
-                    }
-                });
-
-                return defaultUsersBulkCreate
-            })
-            .then(defaultUsersBulkCreate => {
-
-                if(defaultUsersBulkCreate) {
-                    User
-                        .bulkCreate(defaultUsersBulkCreate)
-                        .then(() => {
-                            return User.findAll();
-                        })
-                        .then((users) => {
-                            console.log(users);
-                        })
-                }
-
-            })
-            .catch(function(err) {
-                console.log(err);
-            });
-        
     })
     .catch(function(err) {
         console.log(err)
     });
+
+function createDefaultUsersIfNotExist() {
+
+    let defaultUsersBulkCreate = [];
+
+    User
+        .findAll()
+        .then(alreadyInUsers => {
+
+            let alreadyIn = alreadyInUsers.map(user => user.username);
+
+            DEFAULT_USERS.forEach(user => {
+
+                if (!alreadyIn.includes(user.username)) {
+
+                    defaultUsersBulkCreate.push({
+                        username: user.username,
+                        password: user.password,
+                        permission: user.permission,
+                        editable: user.editable,
+                        email: user.email
+                    })
+                }
+            });
+
+            return defaultUsersBulkCreate
+        })
+        .then(defaultUsersBulkCreate => {
+
+            if(defaultUsersBulkCreate) {
+                User
+                    .bulkCreate(defaultUsersBulkCreate)
+                    .then(() => {
+                        return User.findAll();
+                    })
+                    .then((users) => {
+                        console.log(users);
+                    })
+            }
+
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
+}
