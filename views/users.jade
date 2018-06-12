@@ -1,10 +1,13 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
-  p Users:
-  ul
-    each user in user_list
-      li
-        a(href='/users/#{user.id}/update') #{user.username} : #{user.permission} : #{user.email}
+	h1= title
+	p Welcome to #{title}
+	ul
+		each user in user_list
+			li
+				a(href='/users/#{user.id}/update') #{user.username} : #{user.permission} : #{user.email}
+
+
+	if updated_user
+		p #{updated_user.username} was updated

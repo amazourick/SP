@@ -65,25 +65,103 @@ exports.user_delete_post = function(req, res) {
 
 exports.user_update_get = function(req, res) {
 
-    console.log(_.isNumber(req.params.id));
-
     const _id = _.toNumber(req.params.id);
 
-    if(_.isNumber(_id)) {
+    if(_.isNumber(_id) && !_.isNaN(_id)) {
 
         User
             .findById(_id)
             .then(user => {
-                console.log(user);
-                res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user})
+
+                if (user) {
+                    res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user})
+                } else {
+                    res.render('error', {
+                        message: `No user`,
+                        error: { status: '', stack: `There is no user with id: ${_id}`}})
+                }
+            })
+            .catch(err => {
+                res.render('error', { message: err.message, error: { status: err.status, stack: err.stack}})
             });
 
 
     } else {
-        res.render('error', { message: 'There is no user.', error: { status: '', stack: ''}})
+        res.render('error', { message: 'Incorrect User Id.', error: { status: '', stack: `User Id: ${_id}`}})
     }
 };
 
-exports.user_update_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: User update POST');
-};
+exports.user_update_post = [
+
+    checkIdInput,
+    checkIdExist,
+
+    body('username', 'Username is required').isLength({ min: 1 }).trim(),
+    body('password', 'Password mast have at least 8 characters').isLength({ min: 8 }).trim(),
+    body('confirmPassword', 'Confirm Password mast have at least 8 characters').isLength({ min: 8}).trim(),
+    body('permission', 'Permission is required').isLength({ min: 1}).trim(),
+    body('email', 'Email is required').isLength({ min: 1 }).trim(),
+
+    sanitizeBody('username').trim().escape(),
+    sanitizeBody('password').trim().escape(),
+    sanitizeBody('confirmPassword').trim().escape(),
+    sanitizeBody('permission').trim().escape(),
+    sanitizeBody('email').trim().escape(),
+
+    (req, res, next) => {
+
+        const errors = validationResult(req);
+
+        const _id = _.toNumber(req.params.id);
+
+        let user = new User({
+            id: _id,
+            username: req.body.username,
+            password: req.body.password,
+            confirmPassword: req.body.confirmPassword,
+            permission: req.body.permission,
+            email: req.body.email
+        });
+
+        if (!errors.isEmpty()) {
+            res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user, errors: errors.array()});
+        } else {
+            User
+                .update({
+                    username: req.body.username,
+                    password: req.body.password,
+                    permission: req.body.permission,
+                    email: req.body.email
+                }, {
+                    where: { id: _id }
+                })
+                .then(count => {
+
+                    User
+                        .findAll()
+                        .then(users => {
+                            res.render('users', { title: 'Users', user_list: users, updated_user: user});
+                        })
+                        .catch(err => {
+
+                            showError(res, err);
+                        });
+                })
+                .catch(err => {
+
+                    showError(res, err);
+                })
+        }
+    }
+];
+
+function showError(res, error, message='Error', status='', stack='') {
+
+    res.render('error', {
+        message: error.message || message,
+        error: {
+            status: error.status || status,
+            stack: error.stack || stack
+        }
+    })
+}
