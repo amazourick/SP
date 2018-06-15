@@ -34,7 +34,9 @@ const checkIdExist = function (req, res, next) {
 exports.user_list = function(req, res) {
 
     User
-        .findAll()
+        .findAll({
+            order: [['updatedAt', 'DESC']]
+        })
         .then(users => {
             res.render('users', { title: 'Users', user_list: users});
         })
@@ -91,6 +93,7 @@ exports.user_create_post = [
 
                     User
                         .findAll()
+                        /*
                         .then(users => {
 
                             res.render('users', {
@@ -99,6 +102,7 @@ exports.user_create_post = [
                                 updated_user: user
                             });
                         })
+                        */
                         .then(() => {
 
                             res.redirect('/users');
@@ -208,12 +212,17 @@ exports.user_update_post = [
 
                     User
                         .findAll()
+                        /*
                         .then(users => {
                             res.render('users', {
                                 title: 'Users',
                                 user_list: users,
                                 updated_user: user
                             });
+                        })
+                        */
+                        .then(() => {
+                            res.redirect('/users');
                         })
                         .catch(err => {
 
