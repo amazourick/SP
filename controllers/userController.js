@@ -39,7 +39,7 @@ exports.user_list = function(req, res) {
             res.render('users', { title: 'Users', user_list: users});
         })
         .catch(err => {
-            console.log(err);
+            showError(res, err);
         });
 };
 
@@ -51,9 +51,70 @@ exports.user_create_get = function(req, res) {
     res.render('user_form', { title: 'Create User', permission_list: permissions});
 };
 
-exports.user_create_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: User create POST');
-};
+exports.user_create_post = [
+    body('username', 'Username is required').isLength({ min: 1 }).trim(),
+    body('password', 'Password mast have at least 8 characters').isLength({ min: 8 }).trim(),
+    body('confirmPassword', 'Confirm Password mast have at least 8 characters').isLength({ min: 8}).trim(),
+    body('permission', 'Permission is required').isLength({ min: 1}).trim(),
+    body('email', 'Email is required').isLength({ min: 1 }).trim(),
+
+    sanitizeBody('username').trim().escape(),
+    sanitizeBody('password').trim().escape(),
+    sanitizeBody('confirmPassword').trim().escape(),
+    sanitizeBody('permission').trim().escape(),
+    sanitizeBody('email').trim().escape(),
+
+    (req, res, next) => {
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+
+            res.render('user_form', {
+                title: 'Create User',
+                permission_list: permissions,
+                user: user,
+                errors: errors.array()
+            });
+        } else {
+
+            User
+                .create({
+                    username: req.body.username,
+                    password: req.body.password,
+                    permission: req.body.permission,
+                    email: req.body.email
+                })
+                .then(user => {
+
+                    console.log(user);
+
+                    User
+                        .findAll()
+                        .then(users => {
+
+                            res.render('users', {
+                                title: 'Users',
+                                user_list: users,
+                                updated_user: user
+                            });
+                        })
+                        .then(() => {
+
+                            res.redirect('/users');
+                        })
+                        .catch(err => {
+                            showError(res, err);
+                        })
+
+                })
+                .catch((err) => {
+                    showError(res, err);
+                });
+
+        }
+    }
+];
 
 exports.user_delete_get = function(req, res) {
     res.send('NOT IMPLEMENTED: User delete GET');
@@ -76,18 +137,19 @@ exports.user_update_get = function(req, res) {
                 if (user) {
                     res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user})
                 } else {
-                    res.render('error', {
-                        message: `No user`,
-                        error: { status: '', stack: `There is no user with id: ${_id}`}})
+
+                    showError(res, undefined, 'No user.', '', `There is no user with id: ${_id}`);
                 }
             })
             .catch(err => {
-                res.render('error', { message: err.message, error: { status: err.status, stack: err.stack}})
+
+                showError(res, err);
             });
 
 
     } else {
-        res.render('error', { message: 'Incorrect User Id.', error: { status: '', stack: `User Id: ${_id}`}})
+
+        showError(res, undefined, 'Incorrect User Id.', '', `User Id: ${_id}`);
     }
 };
 
@@ -124,8 +186,15 @@ exports.user_update_post = [
         });
 
         if (!errors.isEmpty()) {
-            res.render('user_form', { title: 'Edit User', permission_list: permissions, user: user, errors: errors.array()});
+
+            res.render('user_form', {
+                title: 'Edit User',
+                permission_list: permissions,
+                user: user,
+                errors: errors.array()
+            });
         } else {
+
             User
                 .update({
                     username: req.body.username,
@@ -140,7 +209,11 @@ exports.user_update_post = [
                     User
                         .findAll()
                         .then(users => {
-                            res.render('users', { title: 'Users', user_list: users, updated_user: user});
+                            res.render('users', {
+                                title: 'Users',
+                                user_list: users,
+                                updated_user: user
+                            });
                         })
                         .catch(err => {
 
@@ -157,11 +230,23 @@ exports.user_update_post = [
 
 function showError(res, error, message='Error', status='', stack='') {
 
-    res.render('error', {
-        message: error.message || message,
-        error: {
-            status: error.status || status,
-            stack: error.stack || stack
-        }
-    })
+    if (error) {
+        res.render('error', {
+            message: error.message || message,
+            error: {
+                status: error.status || status,
+                stack: error.stack || stack
+            }
+        })
+    } else {
+        res.render('error', {
+            message: message,
+            error: {
+                status: status,
+                stack: stack
+            }
+        })
+    }
+
+
 }

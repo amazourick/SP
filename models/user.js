@@ -13,7 +13,7 @@ module.exports = function(sequelize, Sequelize) {
       },
       editable: Sequelize.BOOLEAN,
       email: Sequelize.STRING
-  },{
+  }, {
       timestamp: true,
       paranoid: false,
   });
