@@ -13,6 +13,7 @@ module.exports = function(sequelize, Sequelize) {
       },
       editable: Sequelize.BOOLEAN,
       email: Sequelize.STRING,
+
       url: {
           type: Sequelize.STRING,
           allowNull: true,
@@ -20,6 +21,7 @@ module.exports = function(sequelize, Sequelize) {
               return '/users/' + this.getDataValue('id');
           },
       },
+
       urlUpdate: {
           type: Sequelize.STRING,
           allowNull: true,
@@ -27,6 +29,7 @@ module.exports = function(sequelize, Sequelize) {
               return '/users/' + this.getDataValue('id') + '/update';
           },
       },
+
       urlDelete: {
           type: Sequelize.STRING,
           allowNull: true,

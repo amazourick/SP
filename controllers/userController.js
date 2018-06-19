@@ -89,8 +89,6 @@ exports.user_create_post = [
                 })
                 .then(user => {
 
-                    console.log(user);
-
                     User
                         .findAll()
                         /*
@@ -256,6 +254,5 @@ function showError(res, error, message='Error', status='', stack='') {
             }
         })
     }
-
 
 }

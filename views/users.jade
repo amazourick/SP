@@ -7,9 +7,3 @@ block content
 		each user in user_list
 			li
 				a(href=user.urlUpdate) #{user.username} : #{user.permission} : #{user.email}
-
-
-	if updated_user
-		p
-			i #{updated_user.username}
-			span &nbsp;was updated

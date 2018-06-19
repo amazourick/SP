@@ -1,0 +1,9 @@
+extends layout
+
+block content
+	h1= title
+	p Welcome to #{title}
+	ul
+		each event_type in event_type_list
+			li
+				a(href=event_type.urlUpdate) #{event_type.name} : #{event_type.description}
